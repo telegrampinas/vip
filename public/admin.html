@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — VIP Channels</title>
+<meta name="theme-color" content="#17212b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232aabee'/%3E%3Cpath fill='%23fff' transform='translate(2.6 3.4) scale(.76)' d='M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z'/%3E%3C/svg%3E">
+<script src="/ui.js"></script>
+<link rel="stylesheet" href="/app.css">
+<style>
+  .admin-wrap{max-width:980px;margin:0 auto;padding:18px 12px 120px}
+  .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:5px;border-radius:18px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;min-height:40px;padding:0 16px;border:0;border-radius:13px;background:transparent;color:var(--muted);font:600 14px/1 var(--font);cursor:pointer;transition:background-color .2s,color .2s}
+  .tabs button:hover{color:var(--text)}
+  .tabs button[aria-selected="true"]{background:var(--blue);color:#fff;box-shadow:0 6px 16px rgba(42,171,238,.3)}
+  .panel{padding:18px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow-sm);transition:background-color .35s}
+  .panel+.panel{margin-top:14px}
+  .panel h2{font-size:17px;font-weight:700;line-height:1.25;margin-bottom:2px}
+  .panel .lead{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .seg{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);margin-bottom:14px;flex-wrap:wrap}
+  .seg button{min-height:38px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:var(--muted);font:600 14px/1 var(--font);cursor:pointer;transition:background-color .2s,color .2s}
+  .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink)}
+  .btn-rows{display:grid;gap:6px}
+  .btn-row{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.4fr) 40px;gap:8px;align-items:center;padding:6px;border-radius:16px;background:var(--row)}
+  .btn-row .n{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.18)}
+  .btn-row .input{min-height:42px;background-color:var(--panel)}
+  .btn-row .del{width:40px;height:40px;background:transparent;color:var(--danger-ink)}
+  .btn-row .del:hover{background:var(--danger-soft);color:var(--danger-ink)}
+  .btn-row-head{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.4fr) 40px;gap:8px;padding:0 6px;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+  .savebar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+    background:var(--panel);background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;gap:10px;transform:translateY(110%);transition:transform .25s var(--ease)}
+  .savebar.show{transform:none}
+  .savebar p{font-size:14px;color:var(--muted)}
+  .qr-admin{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start}
+  .qr-admin .qr-frame{margin:0;width:100%}
+  .car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .car-item{border-radius:16px;overflow:hidden;background:var(--row)}
+  .car-item img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--rowh)}
+  .car-item .body{padding:10px;display:grid;gap:8px}
+  .car-item .input{background-color:var(--panel);min-height:42px}
+  .car-item .tools{display:flex;gap:6px}
+  .car-item .tools .icon-btn{width:40px;height:40px;background:var(--panel)}
+  .car-item .tools .grow{flex:1}
+  .dropzone{display:grid;place-items:center;gap:8px;text-align:center;padding:24px;border-radius:16px;border:1.5px dashed var(--accent-line);background:var(--accent-soft);color:var(--muted);font-size:14px;cursor:pointer;margin-bottom:14px;transition:background-color .18s}
+  .dropzone:hover,.dropzone.drag{background:rgba(42,171,238,.2)}
+  .dropzone:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+  .dropzone svg{width:30px;height:30px;color:var(--accent-ink)}
+  .dropzone strong{color:var(--accent-ink)}
+  .users{display:grid;gap:6px}
+  .user{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 12px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--row)}
+  .user .who{min-width:0}
+  .user .who strong{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .user .who span{font-size:12.5px;color:var(--muted)}
+  .user .ctrls{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+  .user select.input{min-height:38px;width:auto;padding:6px 32px 6px 12px;font-size:14px;background-color:var(--panel);border-radius:11px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .stat{padding:14px 10px;border-radius:18px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);text-align:center}
+  .stat b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat span{display:block;margin-top:4px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .stat:first-child{background:linear-gradient(135deg,rgba(42,171,238,.2),rgba(42,171,238,.06)),var(--panel);border-color:var(--accent-line)}
+  .stat:first-child b,.stat:first-child span{color:var(--accent-ink)}
+  #btnCount{color:var(--muted);font-weight:600}
+  @media (max-width:680px){
+    .row2,.qr-admin{grid-template-columns:1fr}
+    .qr-admin .qr-frame{max-width:240px;margin:0 auto}
+    .btn-row{grid-template-columns:32px minmax(0,1fr) 40px;grid-template-areas:"n name del" "n url url"}
+    .btn-row .n{grid-area:n;align-self:start;width:32px;height:32px;font-size:12px;margin-top:5px}
+    .btn-row .name{grid-area:name}.btn-row .url{grid-area:url}.btn-row .del{grid-area:del}
+    .btn-row-head{display:none}
+    .user{grid-template-columns:auto minmax(0,1fr)}
+    .user .ctrls{grid-column:1/-1;justify-content:flex-start}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .savebar p{display:none}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in wide">
+    <a class="me" href="/admin">
+      <span class="logo logo-sm" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="#fff" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg></span>
+      <span class="me-txt keep"><b>Admin</b><small id="adminWho">Control panel</small></span>
+    </a>
+    <div class="top-right">
+      <a class="btn btn-ghost btn-sm" href="/">View site</a>
+      <button class="ib" data-theme-toggle aria-label="Toggle theme"></button>
+      <button class="ib" id="logoutBtn" aria-label="Log out">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="admin-wrap">
+  <nav class="tabs" role="tablist" aria-label="Admin sections" id="tabs">
+    <button role="tab" data-tab="general" aria-selected="true">General</button>
+    <button role="tab" data-tab="packages" aria-selected="false">Packages &amp; buttons</button>
+    <button role="tab" data-tab="qr" aria-selected="false">Payment QR</button>
+    <button role="tab" data-tab="carousel" aria-selected="false">Coffee carousel</button>
+    <button role="tab" data-tab="users" aria-selected="false">Users &amp; tiers</button>
+    <button role="tab" data-tab="account" aria-selected="false">My account</button>
+  </nav>
+
+  <!-- GENERAL -->
+  <div data-panel="general">
+    <div class="panel">
+      <h2>Site text</h2>
+      <p class="lead">Shown at the top of the homepage.</p>
+      <div class="field"><label for="siteTitle">Site title</label><input class="input" id="siteTitle" data-s="siteTitle"></div>
+      <div class="field"><label for="siteSub">Subtitle</label><input class="input" id="siteSub" data-s="siteSub"></div>
+      <div class="field"><label for="carouselTitle">Carousel heading</label><input class="input" id="carouselTitle" data-s="carouselTitle"></div>
+      <div class="field"><label for="footer">Footer note</label><input class="input" id="footer" data-s="footer"></div>
+    </div>
+    <div class="panel">
+      <h2>Links</h2>
+      <p class="lead">Telegram (https://t.me/…), Messenger (https://m.me/…), any https:// link, or mailto:.</p>
+      <div class="row2">
+        <div class="field"><label for="contactLabel">Contact button text</label><input class="input" id="contactLabel" data-s="contactLabel"></div>
+        <div class="field"><label for="contactUrl">Contact us link</label><input class="input" id="contactUrl" data-s="contactUrl" inputmode="url" placeholder="https://t.me/yourname"><span class="help">Leave empty to hide the Contact section.</span></div>
+      </div>
+      <div class="field"><label for="sendUrl">"Send receipt here" link (in the upgrade popup)</label><input class="input" id="sendUrl" data-s="sendUrl" inputmode="url" placeholder="https://t.me/yourname"></div>
+    </div>
+    <div class="panel">
+      <h2>Lock popup</h2>
+      <p class="lead">Shown when a user taps a locked button.</p>
+      <div class="field"><label for="lockTitle">Title</label><input class="input" id="lockTitle" data-s="lockTitle"></div>
+      <div class="field"><label for="lockText">Message</label><textarea class="input" id="lockText" data-s="lockText"></textarea></div>
+      <label class="check"><input type="checkbox" id="bUnlocksA"> Package B members can also open Package A</label>
+    </div>
+  </div>
+
+  <!-- PACKAGES -->
+  <div data-panel="packages" class="hidden">
+    <div class="seg" role="group" aria-label="Package" id="pkgSeg">
+      <button data-pkg="free" aria-pressed="true">Free Plan</button>
+      <button data-pkg="a" aria-pressed="false">Package A</button>
+      <button data-pkg="b" aria-pressed="false">Package B</button>
+    </div>
+    <div class="panel">
+      <h2 id="pkgHeading">Card</h2>
+      <p class="lead">The rectangle box on the homepage.</p>
+      <div class="row2">
+        <div class="field"><label for="p-name">Package name</label><input class="input" id="p-name" data-p="name"></div>
+        <div class="field"><label for="p-countLabel">Label under the number</label><input class="input" id="p-countLabel" data-p="countLabel"></div>
+        <div class="field"><label for="p-price">Price</label><input class="input" id="p-price" data-p="price"></div>
+        <div class="field"><label for="p-priceNote">Price note</label><input class="input" id="p-priceNote" data-p="priceNote"></div>
+      </div>
+      <div class="field"><label for="p-desc">Description (optional)</label><textarea class="input" id="p-desc" data-p="desc"></textarea></div>
+    </div>
+    <div class="panel">
+      <h2>Buttons <span id="btnCount"></span></h2>
+      <p class="lead">Name and link for each button. Links are hidden from users who haven't unlocked this package.</p>
+      <div class="btn-row-head" aria-hidden="true"><span>#</span><span>Name</span><span>Link</span><span></span></div>
+      <div class="btn-rows" id="btnRows"></div>
+      <button class="btn btn-ghost btn-sm" id="addBtn" style="margin-top:14px">+ Add button</button>
+    </div>
+  </div>
+
+  <!-- QR -->
+  <div data-panel="qr" class="hidden">
+    <div class="panel">
+      <h2>Payment QR</h2>
+      <p class="lead">Shown when a user taps Upgrade. Uploading replaces it immediately.</p>
+      <div class="qr-admin">
+        <div class="qr-frame"><img id="qrPreview" alt="Current payment QR"></div>
+        <div>
+          <label class="dropzone" id="qrDrop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+            <span><strong>Upload new QR</strong><br>PNG or JPG</span>
+            <input type="file" id="qrFile" accept="image/png,image/jpeg,image/webp" class="sr-only">
+          </label>
+          <div class="field"><label for="qrHint">Text under the QR</label><input class="input" id="qrHint" data-s="qrHint"></div>
+          <button class="btn btn-danger btn-sm" id="qrReset">Restore original QR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAROUSEL -->
+  <div data-panel="carousel" class="hidden">
+    <div class="panel">
+      <h2>Coffee bean photos</h2>
+      <p class="lead">Users swipe through these on the homepage. Photos are resized automatically.</p>
+      <label class="dropzone" id="carDrop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span><strong>Add photos</strong><br>Tap to choose, or drop images here</span>
+        <input type="file" id="carFile" accept="image/*" multiple class="sr-only">
+      </label>
+      <div class="car-grid" id="carGrid"></div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div data-panel="users" class="hidden">
+    <div class="stats" id="stats"></div>
+    <div class="panel">
+      <h2>Users</h2>
+      <p class="lead">Change a user's tier after you confirm their payment. It applies instantly.</p>
+      <div class="field"><label for="userSearch" class="sr-only">Search users</label><input class="input" id="userSearch" type="search" placeholder="Search username…"></div>
+      <div class="users" id="userList"></div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div data-panel="account" class="hidden">
+    <div class="panel">
+      <h2>Change my password</h2>
+      <p class="lead" id="meLine"></p>
+      <form id="pwForm" novalidate>
+        <div class="field"><label for="curPw">Current password</label><input class="input" id="curPw" type="password" autocomplete="current-password"></div>
+        <div class="field"><label for="newPw">New password</label><input class="input" id="newPw" type="password" autocomplete="new-password"><span class="help">At least 6 characters.</span></div>
+        <p class="err" id="pwErr" role="alert" style="color:var(--danger);font-size:.85rem;margin-bottom:10px"></p>
+        <button class="btn btn-primary" type="submit">Update password</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<div class="savebar" id="savebar" role="region" aria-label="Unsaved changes">
+  <p>You have unsaved changes</p>
+  <button class="btn btn-ghost btn-sm" id="discardBtn">Discard</button>
+  <button class="btn btn-primary btn-sm" id="saveBtn">Save changes</button>
+</div>
+
+<!-- Reset password modal -->
+<div class="modal" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle" aria-hidden="true">
+  <div class="sheet" style="text-align:left">
+    <button class="ib close" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3 id="resetTitle">Reset password</h3>
+    <p class="sub" id="resetWho" style="margin-bottom:16px"></p>
+    <div class="field"><label for="resetPw">New password</label><input class="input" id="resetPw" type="text" autocomplete="off"><span class="help">Give this to the user. At least 6 characters.</span></div>
+    <div class="actions"><button class="btn btn-primary" id="resetGo">Set password</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const TIERS = { free: 'Free', a: 'Package A', b: 'Package B' };
+  let S = null, saved = '', carousel = [], users = [], me = null, curPkg = 'free';
+
+  function toast(msg, err) { const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); }
+  async function api(url, opts = {}) {
+    const r = await fetch(url, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    if (r.status === 401) { location.replace('/login'); throw new Error('auth'); }
+    if (r.status === 403) { location.replace('/'); throw new Error('forbidden'); }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Request failed');
+    return d;
+  }
+
+  /* ---------- Tabs ---------- */
+  function showTab(name) {
+    document.querySelectorAll('#tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== name));
+    history.replaceState(null, '', '#' + name);
+  }
+  document.querySelectorAll('#tabs [data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+  /* ---------- Dirty tracking ---------- */
+  const snapshot = () => JSON.stringify(S);
+  function dirtyCheck() { $('savebar').classList.toggle('show', snapshot() !== saved); }
+  window.addEventListener('beforeunload', e => { if (S && snapshot() !== saved) { e.preventDefault(); e.returnValue = ''; } });
+
+  function fillGeneral() {
+    document.querySelectorAll('[data-s]').forEach(i => { i.value = S[i.dataset.s] || ''; });
+    $('bUnlocksA').checked = !!S.bUnlocksA;
+  }
+  document.querySelectorAll('[data-s]').forEach(i => i.addEventListener('input', () => { S[i.dataset.s] = i.value; dirtyCheck(); }));
+  $('bUnlocksA').onchange = e => { S.bUnlocksA = e.target.checked; dirtyCheck(); };
+
+  /* ---------- Packages ---------- */
+  function fillPackage() {
+    const p = S.packages[curPkg];
+    document.querySelectorAll('#pkgSeg [data-pkg]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.pkg === curPkg)); b.textContent = S.packages[b.dataset.pkg].name || TIERS[b.dataset.pkg]; });
+    $('pkgHeading').textContent = (p.name || TIERS[curPkg]) + ' card';
+    document.querySelectorAll('[data-p]').forEach(i => { i.value = p[i.dataset.p] || ''; });
+    renderRows();
+  }
+  document.querySelectorAll('[data-p]').forEach(i => i.addEventListener('input', () => { S.packages[curPkg][i.dataset.p] = i.value; dirtyCheck(); if (i.dataset.p === 'name') document.querySelector(`#pkgSeg [data-pkg="${curPkg}"]`).textContent = i.value || TIERS[curPkg]; }));
+  document.querySelectorAll('#pkgSeg [data-pkg]').forEach(b => b.onclick = () => { curPkg = b.dataset.pkg; fillPackage(); });
+
+  function renderRows() {
+    const list = S.packages[curPkg].buttons, box = $('btnRows'); box.innerHTML = '';
+    $('btnCount').textContent = `(${list.length})`;
+    list.forEach((bt, i) => {
+      const row = el('div', 'btn-row');
+      const n = el('span', 'n g' + (i % 7), String(i + 1)); n.setAttribute('aria-hidden', 'true');
+      const name = el('input', 'input name'); name.value = bt.name; name.setAttribute('aria-label', `Button ${i + 1} name`); name.maxLength = 80;
+      const url = el('input', 'input url'); url.value = bt.url; url.placeholder = 'https://…'; url.inputMode = 'url'; url.setAttribute('aria-label', `Button ${i + 1} link`);
+      const del = el('button', 'icon-btn del'); del.type = 'button'; del.setAttribute('aria-label', `Remove button ${i + 1}`);
+      del.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
+      name.oninput = () => { bt.name = name.value; dirtyCheck(); };
+      url.oninput = () => { bt.url = url.value; dirtyCheck(); };
+      del.onclick = () => { if (confirm(`Remove "${bt.name}"?`)) { list.splice(i, 1); renderRows(); dirtyCheck(); } };
+      row.append(n, name, url, del); box.append(row);
+    });
+  }
+  $('addBtn').onclick = () => {
+    const list = S.packages[curPkg].buttons;
+    list.push({ name: `Channel ${list.length + 1}`, url: '' }); renderRows(); dirtyCheck();
+    const last = $('btnRows').lastElementChild.querySelector('.name'); last.focus(); last.select();
+  };
+
+  /* ---------- Save ---------- */
+  $('saveBtn').onclick = async () => {
+    const btn = $('saveBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Saving';
+    try {
+      const d = await api('/api/admin/settings', { method: 'PUT', body: S });
+      const changed = ['contactUrl', 'sendUrl'].some(k => (S[k] || '') !== (d.settings[k] || '')) ||
+        Object.keys(S.packages).some(k => S.packages[k].buttons.some((b, i) => (b.url || '') !== d.settings.packages[k].buttons[i].url));
+      S = d.settings; saved = snapshot(); fillGeneral(); fillPackage(); dirtyCheck();
+      toast(changed ? 'Saved. Some links were fixed or removed (must start with https://, tg:, or mailto:)' : 'Saved');
+    } catch (e) { toast(e.message, true); }
+    finally { btn.disabled = false; btn.textContent = 'Save changes'; }
+  };
+  $('discardBtn').onclick = () => { S = JSON.parse(saved); fillGeneral(); fillPackage(); dirtyCheck(); };
+
+  /* ---------- Image helpers ---------- */
+  function resize(file, max, type, quality) {
+    return new Promise((resolve, reject) => {
+      const img = new Image(); const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        const ctx = c.getContext('2d'); if (type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); }
+        ctx.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        resolve(c.toDataURL(type, quality));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image')); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- QR ---------- */
+  function fillQr() { $('qrPreview').src = S.qrUrl + '?v=' + Date.now(); }
+  $('qrFile').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      toast('Uploading QR…');
+      const dataUrl = await resize(f, 1200, 'image/png');
+      const d = await api('/api/admin/qr', { method: 'POST', body: { dataUrl } });
+      S.qrUrl = d.qrUrl; const s = JSON.parse(saved); s.qrUrl = d.qrUrl; saved = JSON.stringify(s); fillQr(); dirtyCheck(); toast('QR updated');
+    } catch (err) { toast(err.message, true); }
+  };
+  $('qrReset').onclick = async () => {
+    if (!confirm('Restore the original QR from the project files?')) return;
+    try { const d = await api('/api/admin/qr', { method: 'POST', body: { reset: true } }); S.qrUrl = d.qrUrl; const s = JSON.parse(saved); s.qrUrl = d.qrUrl; saved = JSON.stringify(s); fillQr(); dirtyCheck(); toast('Original QR restored'); }
+    catch (err) { toast(err.message, true); }
+  };
+
+  /* ---------- Carousel ---------- */
+  function renderCarousel() {
+    const g = $('carGrid'); g.innerHTML = '';
+    if (!carousel.length) { g.append(el('p', 'empty', 'No photos yet. Add your coffee beans above.')); return; }
+    carousel.forEach((it, i) => {
+      const card = el('div', 'car-item');
+      const img = el('img'); img.src = it.url; img.alt = it.caption || `Photo ${i + 1}`; img.loading = 'lazy';
+      const body = el('div', 'body');
+      const cap = el('input', 'input'); cap.placeholder = 'Caption (optional)'; cap.value = it.caption || ''; cap.maxLength = 140; cap.setAttribute('aria-label', `Caption for photo ${i + 1}`);
+      cap.onchange = () => { it.caption = cap.value; pushOrder('Caption saved'); };
+      const tools = el('div', 'tools');
+      const mk = (label, svg, fn, dis) => { const b = el('button', 'icon-btn'); b.type = 'button'; b.setAttribute('aria-label', label); b.innerHTML = svg; b.onclick = fn; b.disabled = !!dis; if (dis) b.style.opacity = .35; return b; };
+      tools.append(
+        mk('Move left', '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>', () => move(i, -1), i === 0),
+        mk('Move right', '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>', () => move(i, 1), i === carousel.length - 1),
+        el('span', 'grow'),
+        mk('Remove photo', '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>', () => removePhoto(it))
+      );
+      tools.lastChild.style.color = 'var(--danger)';
+      body.append(cap, tools); card.append(img, body); g.append(card);
+    });
+  }
+  async function pushOrder(msg) {
+    try { const d = await api('/api/admin/carousel', { method: 'PUT', body: { items: carousel.map(c => ({ id: c.id, caption: c.caption })) } }); carousel = d.carousel; renderCarousel(); if (msg) toast(msg); }
+    catch (e) { toast(e.message, true); }
+  }
+  function move(i, dir) { const j = i + dir; [carousel[i], carousel[j]] = [carousel[j], carousel[i]]; renderCarousel(); pushOrder(); }
+  async function removePhoto(it) {
+    if (!confirm('Remove this photo from the carousel?')) return;
+    try { const d = await api('/api/admin/carousel/' + it.id, { method: 'DELETE' }); carousel = d.carousel; renderCarousel(); toast('Photo removed'); }
+    catch (e) { toast(e.message, true); }
+  }
+  async function addPhotos(files) {
+    const list = [...files].filter(f => f.type.startsWith('image/')); if (!list.length) return;
+    let n = 0;
+    for (const f of list) {
+      try {
+        toast(`Uploading ${++n} of ${list.length}…`);
+        const dataUrl = await resize(f, 1600, 'image/jpeg', 0.85);
+        const d = await api('/api/admin/carousel', { method: 'POST', body: { dataUrl, caption: '' } });
+        carousel = d.carousel; renderCarousel();
+      } catch (e) { toast(`${f.name}: ${e.message}`, true); }
+    }
+    toast(list.length === 1 ? 'Photo added' : `${list.length} photos added`);
+  }
+  $('carFile').onchange = e => { addPhotos(e.target.files); e.target.value = ''; };
+  ['carDrop', 'qrDrop'].forEach(id => {
+    const z = $(id);
+    z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('drag'); });
+    z.addEventListener('dragleave', () => z.classList.remove('drag'));
+    z.addEventListener('drop', e => {
+      e.preventDefault(); z.classList.remove('drag');
+      if (id === 'carDrop') addPhotos(e.dataTransfer.files);
+      else if (e.dataTransfer.files[0]) { const dt = new DataTransfer(); dt.items.add(e.dataTransfer.files[0]); $('qrFile').files = dt.files; $('qrFile').dispatchEvent(new Event('change')); }
+    });
+  });
+
+  /* ---------- Users ---------- */
+  function renderStats() {
+    const c = { all: users.length, free: 0, a: 0, b: 0 }; users.forEach(u => c[u.tier]++);
+    $('stats').innerHTML = '';
+    [['Total users', c.all], ['Free', c.free], ['Package A', c.a], ['Package B', c.b]].forEach(([l, v]) => { const s = el('div', 'stat'); s.append(el('b', null, String(v)), el('span', null, l)); $('stats').append(s); });
+  }
+  function renderUsers() {
+    renderStats();
+    const q = $('userSearch').value.trim().toLowerCase();
+    const box = $('userList'); box.innerHTML = '';
+    const list = users.filter(u => !q || u.username.toLowerCase().includes(q)).sort((a, b) => b.createdAt - a.createdAt);
+    if (!list.length) { box.append(el('p', 'empty', q ? 'No users match.' : 'No users yet.')); return; }
+    list.forEach(u => {
+      const row = el('div', 'user');
+      const av = el('span', 'av g' + UI.hue(u.username), UI.initials(u.username)); av.setAttribute('aria-hidden', 'true');
+      const who = el('div', 'who'); who.append(el('strong', null, u.username + (u.id === me.id ? ' (you)' : '')), el('span', null, `Joined ${new Date(u.createdAt).toLocaleDateString()}${u.role === 'admin' ? ' · Admin' : ''}`));
+      const ctrls = el('div', 'ctrls');
+      const tier = el('select', 'input'); tier.setAttribute('aria-label', `Tier for ${u.username}`);
+      Object.entries(TIERS).forEach(([k, v]) => { const o = el('option', null, k === 'free' ? 'Free account' : (S.packages[k].name || v)); o.value = k; o.selected = u.tier === k; tier.append(o); });
+      tier.onchange = async () => { const prev = u.tier; try { await api('/api/admin/users/' + u.id, { method: 'PUT', body: { tier: tier.value } }); u.tier = tier.value; renderStats(); toast(`${u.username} → ${tier.options[tier.selectedIndex].text}`); } catch (e) { tier.value = prev; toast(e.message, true); } };
+      const role = el('select', 'input'); role.setAttribute('aria-label', `Role for ${u.username}`);
+      [['user', 'User'], ['admin', 'Admin']].forEach(([k, v]) => { const o = el('option', null, v); o.value = k; o.selected = u.role === k; role.append(o); });
+      role.disabled = u.id === me.id;
+      role.onchange = async () => { const prev = u.role; if (role.value === 'admin' && !confirm(`Make ${u.username} an admin? They'll be able to edit everything.`)) { role.value = prev; return; } try { await api('/api/admin/users/' + u.id, { method: 'PUT', body: { role: role.value } }); u.role = role.value; renderUsers(); toast('Role updated'); } catch (e) { role.value = prev; toast(e.message, true); } };
+      const reset = el('button', 'btn btn-ghost btn-sm', 'Reset password'); reset.onclick = () => openReset(u);
+      ctrls.append(tier, role, reset);
+      if (u.id !== me.id) { const del = el('button', 'btn btn-danger btn-sm', 'Delete'); del.onclick = async () => { if (!confirm(`Delete ${u.username}? This can't be undone.`)) return; try { await api('/api/admin/users/' + u.id, { method: 'DELETE' }); users = users.filter(x => x.id !== u.id); renderUsers(); toast('User deleted'); } catch (e) { toast(e.message, true); } }; ctrls.append(del); }
+      row.append(av, who, ctrls); box.append(row);
+    });
+  }
+  $('userSearch').oninput = renderUsers;
+
+  let resetUser = null;
+  function openReset(u) { resetUser = u; $('resetWho').textContent = 'For ' + u.username; $('resetPw').value = ''; const m = $('resetModal'); m.classList.add('open'); m.setAttribute('aria-hidden', 'false'); setTimeout(() => $('resetPw').focus(), 40); }
+  function closeReset() { const m = $('resetModal'); m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); }
+  $('resetModal').addEventListener('click', e => { if (e.target.id === 'resetModal' || e.target.closest('[data-close]')) closeReset(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReset(); });
+  $('resetGo').onclick = async () => {
+    const pw = $('resetPw').value; if (pw.length < 6) return toast('Use at least 6 characters', true);
+    try { await api(`/api/admin/users/${resetUser.id}/password`, { method: 'POST', body: { password: pw } }); closeReset(); toast('Password updated'); } catch (e) { toast(e.message, true); }
+  };
+
+  /* ---------- Account ---------- */
+  $('pwForm').addEventListener('submit', async e => {
+    e.preventDefault(); $('pwErr').textContent = '';
+    try { await api('/api/me/password', { method: 'POST', body: { current: $('curPw').value, password: $('newPw').value } }); $('curPw').value = $('newPw').value = ''; toast('Password updated'); }
+    catch (err) { $('pwErr').textContent = err.message; }
+  });
+
+  $('logoutBtn').onclick = async () => { await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {}); location.replace('/login'); };
+
+  /* ---------- Init ---------- */
+  (async () => {
+    try {
+      const d = await api('/api/admin/data');
+      S = d.settings; saved = snapshot(); carousel = d.carousel; users = d.users; me = d.me;
+      $('meLine').textContent = 'Signed in as ' + me.username; $('adminWho').textContent = me.username;
+      fillGeneral(); fillPackage(); fillQr(); renderCarousel(); renderUsers();
+      const t = location.hash.slice(1); if (document.querySelector(`[data-panel="${t}"]`)) showTab(t);
+    } catch (e) { if (e.message !== 'auth' && e.message !== 'forbidden') toast(e.message, true); }
+  })();
+})();
+</script>
+</body>
+</html>

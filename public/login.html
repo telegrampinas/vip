@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log in — VIP Channels</title>
+<meta name="theme-color" content="#17212b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232aabee'/%3E%3Cpath fill='%23fff' transform='translate(2.6 3.4) scale(.76)' d='M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z'/%3E%3C/svg%3E">
+<script src="/ui.js"></script>
+<link rel="stylesheet" href="/app.css">
+<style>
+  .auth{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:32px 12px}
+  .auth-card{position:relative;width:min(400px,100%);padding:34px 20px 22px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);transition:background-color .35s}
+  .auth-card>.theme{position:absolute;top:10px;right:10px}
+  .crest{width:88px;height:88px;margin:0 auto 18px;box-shadow:0 12px 32px rgba(42,171,238,.45)}
+  .crest svg{width:48px;height:48px;margin-left:-5px}
+  .auth h1{font-size:24px;font-weight:700;text-align:center;line-height:1.2}
+  .auth .lead{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 22px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--row);margin-bottom:18px}
+  .tabs button{min-height:40px;border:0;border-radius:11px;background:transparent;color:var(--muted);font:600 14px/1 var(--font);cursor:pointer;transition:background-color .2s,color .2s}
+  .tabs button[aria-selected="true"]{background:var(--panel);color:var(--accent-ink);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .pw-wrap{position:relative}
+  .pw-wrap .input{padding-right:52px}
+  .pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%)}
+  .form-err{color:var(--danger-ink);font-size:13.5px;text-align:center;min-height:1.3em;margin-bottom:8px}
+  .free-note{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:14px;font-size:13px;color:var(--muted)}
+  .alt-contact{text-align:center;margin-top:18px;font-size:14px}
+  .alt-contact a{font-weight:600;text-decoration:none}
+  .alt-contact a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<main class="auth">
+  <div class="auth-card">
+    <button class="ib theme" data-theme-toggle aria-label="Toggle theme"></button>
+    <div class="logo crest" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="#fff" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg></div>
+    <h1 id="siteTitle">VIP Channels</h1>
+    <p class="lead" id="lead">Log in to see your channels.</p>
+
+    <div class="tabs" role="tablist" aria-label="Account">
+      <button role="tab" id="tab-login" aria-selected="true" aria-controls="authForm">Log in</button>
+      <button role="tab" id="tab-register" aria-selected="false" aria-controls="authForm">Register</button>
+    </div>
+
+    <form id="authForm" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input class="input" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <span class="help hidden" id="userHelp">3–32 characters: letters, numbers, _ . @ -</span>
+        <span class="err" id="userErr" role="alert"></span>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="pw-wrap">
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+          <button type="button" class="ib pw-toggle" id="pwToggle" aria-label="Show password">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <span class="help hidden" id="pwHelp">At least 6 characters.</span>
+        <span class="err" id="pwErr" role="alert"></span>
+      </div>
+      <p class="form-err" id="formErr" role="alert"></p>
+      <button class="btn btn-primary btn-block" id="submitBtn" type="submit">Log in</button>
+      <p class="free-note hidden" id="freeNote">
+        <span class="tier-badge free">FREE ACCOUNT</span> New accounts start free.
+      </p>
+    </form>
+    <p class="alt-contact hidden" id="contactWrap"><a id="contactLink" target="_blank" rel="noopener">Contact us</a></p>
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let mode = location.pathname === '/register' ? 'register' : 'login';
+  const EYE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0112 19c-6.5 0-10-7-10-7a18.5 18.5 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c6.5 0 10 7 10 7a18.5 18.5 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>';
+
+  // Already logged in? go home.
+  fetch('/api/me', { credentials: 'same-origin' }).then(r => { if (r.ok) location.replace('/'); });
+  fetch('/api/public').then(r => r.json()).then(p => {
+    if (p.siteTitle) { $('siteTitle').textContent = p.siteTitle; document.title = (mode === 'login' ? 'Log in — ' : 'Register — ') + p.siteTitle; }
+    if (p.contactUrl) { $('contactLink').href = p.contactUrl; $('contactLink').textContent = p.contactLabel || 'Contact us'; $('contactWrap').classList.remove('hidden'); }
+  }).catch(() => {});
+
+  function setMode(m) {
+    mode = m;
+    const reg = m === 'register';
+    $('tab-login').setAttribute('aria-selected', String(!reg));
+    $('tab-register').setAttribute('aria-selected', String(reg));
+    $('submitBtn').textContent = reg ? 'Create free account' : 'Log in';
+    $('lead').textContent = reg ? 'Create your account — it starts on the Free plan.' : 'Log in to see your channels.';
+    $('password').autocomplete = reg ? 'new-password' : 'current-password';
+    ['userHelp', 'pwHelp', 'freeNote'].forEach(id => $(id).classList.toggle('hidden', !reg));
+    clearErrors();
+    history.replaceState(null, '', reg ? '/register' : '/login');
+  }
+  function clearErrors() {
+    ['userErr', 'pwErr', 'formErr'].forEach(id => $(id).textContent = '');
+    $('username').removeAttribute('aria-invalid'); $('password').removeAttribute('aria-invalid');
+  }
+  function fieldErr(field, msg) {
+    const map = { username: ['username', 'userErr'], password: ['password', 'pwErr'] }[field];
+    if (!map) { $('formErr').textContent = msg; return; }
+    $(map[0]).setAttribute('aria-invalid', 'true'); $(map[1]).textContent = msg; $(map[0]).focus();
+  }
+
+  $('tab-login').onclick = () => setMode('login');
+  $('tab-register').onclick = () => setMode('register');
+  $('pwToggle').onclick = () => {
+    const show = $('password').type === 'password';
+    $('password').type = show ? 'text' : 'password';
+    $('pwToggle').innerHTML = show ? EYE_OFF : EYE;
+    $('pwToggle').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  };
+
+  $('authForm').addEventListener('submit', async e => {
+    e.preventDefault(); clearErrors();
+    const username = $('username').value.trim(), password = $('password').value;
+    if (!username) return fieldErr('username', 'Enter your username.');
+    if (!password) return fieldErr('password', 'Enter your password.');
+    if (mode === 'register') {
+      if (!/^[a-zA-Z0-9_.@-]{3,32}$/.test(username)) return fieldErr('username', 'Use 3–32 letters, numbers, _ . @ -');
+      if (password.length < 6) return fieldErr('password', 'Use at least 6 characters.');
+    }
+    const btn = $('submitBtn'); const label = btn.textContent;
+    btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Please wait';
+    try {
+      const r = await fetch('/api/' + mode, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ username, password }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { fieldErr(d.field, d.error || 'Something went wrong.'); return; }
+      location.replace(d.user && d.user.role === 'admin' ? '/admin' : '/');
+    } catch { fieldErr(null, 'Network error. Check your connection.'); }
+    finally { btn.disabled = false; btn.textContent = label; }
+  });
+
+  setMode(mode);
+})();
+</script>
+</body>
+</html>
